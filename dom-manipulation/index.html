@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dynamic Quote Generator</title>
   </head>
   <body>
@@ -11,23 +11,27 @@
     <!-- Category selector -->
     <div>
       <label for="categoryFilter">Choose category:</label>
-      <select id="categoryFilter" onchange="filterQuotes()">
-        <option value="all">All</option>
+      <select id="categoryFilter" onchange="filterQuote()">
+        <option value="all">All Categories</option>
       </select>
     </div>
 
     <!-- Quote display area -->
-    <div id="quoteDisplay" style="margin: 20px 0; font-size: 1.2rem"></div>
+    <div id="quoteDisplay" style="margin: 20px 0; font-size: 1.2rem;"></div>
 
     <!-- Button to show a new quote -->
     <button id="newQuote">Show New Quote</button>
 
-    <hr />
+    <hr>
 
     <!-- Add new quote section -->
     <h2>Add a new quote</h2>
     <div id="addQuoteFormContainer">
-      <input id="newQuoteText" type="text" placeholder="Enter a new quote" />
+      <input
+        id="newQuoteText"
+        type="text"
+        placeholder="Enter a new quote"
+      />
       <input
         id="newQuoteCategory"
         type="text"
@@ -36,16 +40,12 @@
       <button id="addQuoteButton">Add Quote</button>
     </div>
 
-    <hr />
+    <hr>
 
-    <!-- Import / Export section -->
-    <h2>Import / Export Quotes (JSON)</h2>
-    <div>
-      <button id="exportQuotesBtn">Export Quotes as JSON</button>
-    </div>
-    <div style="margin-top: 10px">
-      <input type="file" id="importFile" accept=".json" />
-    </div>
+    <!-- Server sync section -->
+    <h2>Server Sync</h2>
+    <button id="syncButton">Sync with Server</button>
+    <div id="syncStatus" style="margin-top: 10px; font-size: 0.9rem;"></div>
 
     <script src="script.js"></script>
   </body>
