@@ -22,6 +22,17 @@ const newQuoteCategoryInput = document.getElementById("newQuoteCategory");
 const newQuoteBtn = document.getElementById("newQuote");
 const syncButton = document.getElementById("syncButton");
 const syncStatus = document.getElementById("syncStatus");
+const notification = document.getElementById("notification");
+
+// ----------------- Notification helpers -----------------
+
+function showNotification(message, isError = false) {
+  if (!notification) return;
+  notification.textContent = message;
+  notification.style.color = isError ? "red" : "blue";
+  notification.style.padding = "6px 8px";
+  notification.style.border = "1px solid #ccc";
+}
 
 // ----------------- Local storage helpers -----------------
 
@@ -98,16 +109,14 @@ function filterQuote() {
 // ----------------- Add new quote -----------------
 
 async function postQuoteToServer(quote) {
-  // POST to mock API to satisfy “posting data” check
   try {
     await fetch(SERVER_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(quote)
     });
-    // no need to use the response here
   } catch (e) {
-    // just ignore errors for this mock
+    // ignore errors for mock
   }
 }
 
@@ -128,11 +137,12 @@ function addQuote() {
   localStorage.setItem(FILTER_STORAGE_KEY, category);
   filterQuote();
 
-  // send latest quote to mock server
   postQuoteToServer(newQuote);
 
   newQuoteTextInput.value = "";
   newQuoteCategoryInput.value = "";
+
+  showNotification("New quote added locally and sent to server.");
 }
 
 // ----------------- Server sync + conflicts -----------------
@@ -148,7 +158,6 @@ async function fetchQuotesFromServer() {
     const res = await fetch(SERVER_URL);
     const data = await res.json();
 
-    // Use first 10 posts as server quotes
     const serverQuotes = data.slice(0, 10).map(post => ({
       text: post.title,
       category: "Server-" + post.userId
@@ -157,6 +166,7 @@ async function fetchQuotesFromServer() {
     return serverQuotes;
   } catch (e) {
     showSyncStatus("Failed to fetch from server.", true);
+    showNotification("Error fetching data from server.", true);
     return [];
   }
 }
@@ -174,7 +184,7 @@ function mergeQuotes(localQuotes, serverQuotes) {
       if (merged[index].category !== sq.category) {
         conflicts++;
       }
-      merged[index] = sq; // server version wins
+      merged[index] = sq;
     }
   });
 
@@ -184,10 +194,12 @@ function mergeQuotes(localQuotes, serverQuotes) {
 // REQUIRED NAME: syncQuotes
 async function syncQuotes(manual = false) {
   showSyncStatus("Syncing with server...");
+  showNotification("Sync in progress...");
 
   const serverQuotes = await fetchQuotesFromServer();
   if (serverQuotes.length === 0) {
     showSyncStatus("No server updates.");
+    showNotification("No new data from server.");
     return;
   }
 
@@ -199,6 +211,7 @@ async function syncQuotes(manual = false) {
     );
     if (!useServer) {
       showSyncStatus("Sync canceled. Kept local data.");
+      showNotification("Conflicts detected. You chose to keep local data.");
       return;
     }
   }
@@ -213,8 +226,13 @@ async function syncQuotes(manual = false) {
     showSyncStatus(
       `Sync complete. ${conflicts} conflicts resolved (server version used).`
     );
+    showNotification(
+      `${conflicts} conflicts resolved using server data.`
+    );
+    alert(`${conflicts} conflicts were resolved using server data.`);
   } else {
     showSyncStatus("Sync complete. No conflicts.");
+    showNotification("Data synced with server. No conflicts detected.");
   }
 }
 
@@ -230,12 +248,10 @@ document.addEventListener("DOMContentLoaded", () => {
   categoryFilter.addEventListener("change", filterQuote);
   newQuoteBtn.addEventListener("click", filterQuote);
 
-  // manual sync button
   if (syncButton) {
     syncButton.addEventListener("click", () => syncQuotes(true));
   }
 
-  // periodic sync every 60s (server wins silently)
   setInterval(() => {
     syncQuotes(false);
   }, 60000);
